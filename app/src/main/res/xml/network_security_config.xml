@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FlowTrans itself forwards to a mitmproxy upstream. Trust the user-installed
+  mitmproxy CA (so this app's own outbound TLS to the proxy validates) in addition
+  to the system store. Decrypting *other* apps requires the CA in the system store,
+  which the root CA installer handles separately (Phase 4).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

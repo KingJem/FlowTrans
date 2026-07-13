@@ -1,0 +1,19 @@
+FlowTrans
+Copyright (C) 2026 KingJem
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3.0 (see LICENSE).
+
+This product bundles and derives from the following GPL-3.0 projects:
+
+- mihomo (Clash.Meta) — https://github.com/MetaCubeX/mihomo
+  The prebuilt native core `app/src/main/jniLibs/arm64-v8a/libclash.so` and the
+  JNI bridge `libbridge.so` are taken from a ClashMetaForAndroid release build.
+
+- ClashMetaForAndroid — https://github.com/MetaCubeX/ClashMetaForAndroid
+  The Kotlin bridge classes under `com.github.kr328.clash.core` and
+  `com.github.kr328.clash.common` are vendored from this project (v2.11.31),
+  with package paths preserved so the prebuilt native libraries link correctly.
+
+All other code (the `com.flowtrans.*` app, UI, VpnService, config generation,
+profile storage and CA helper) is original to this project.

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose drives the real UI/colors; this base theme just needs to exist and
+         disable the platform ActionBar so Compose owns the window. -->
+    <style name="Theme.FlowTrans" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

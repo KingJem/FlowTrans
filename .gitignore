@@ -1,0 +1,24 @@
+# Gradle / Android build
+.gradle/
+.kotlin/
+build/
+/app/build/
+/local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keystores / secrets (do NOT commit)
+*.jks
+*.keystore
+signing.properties
+!release-ci.keystore
+
+# OS / misc
+.DS_Store
+Thumbs.db
+
+# Keep the prebuilt mihomo core (required to build the APK)
+!/app/src/main/jniLibs/**
