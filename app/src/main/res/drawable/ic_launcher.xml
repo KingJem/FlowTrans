@@ -3,13 +3,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- background -->
     <path
         android:fillColor="#0B6E4F"
         android:pathData="M0,0h108v108h-108z" />
+    <!-- soft accent shadow arrow (offset down-right) -->
+    <path
+        android:fillColor="#0A5C42"
+        android:pathData="M26,52 L64,52 L64,40 L90,58 L64,76 L64,64 L26,64 Z" />
+    <!-- main left-to-right arrow -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M30,54 L54,30 L60,36 L42,54 L60,72 L54,78 Z" />
-    <path
-        android:fillColor="#8FE3B8"
-        android:pathData="M54,54 L78,30 L84,36 L66,54 L84,72 L78,78 Z" />
+        android:pathData="M22,48 L60,48 L60,36 L86,54 L60,72 L60,60 L22,60 Z" />
 </vector>

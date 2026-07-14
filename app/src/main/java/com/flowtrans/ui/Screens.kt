@@ -1,5 +1,6 @@
 package com.flowtrans.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -54,7 +56,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -83,6 +87,16 @@ fun FlowApp(
     onImportCa: () -> Unit,
 ) {
     var screen by remember { mutableStateOf<Screen>(Screen.Home) }
+    // Intercept the system back gesture (right-edge swipe) on sub-screens so it
+    // navigates back within the app instead of finishing the Activity to launcher.
+    // Screen.Apps is excluded: it owns its own BackHandler so it can persist the
+    // selection before leaving (same as its top-bar back button).
+    BackHandler(enabled = screen != Screen.Home && screen != Screen.Apps) {
+        screen = when (screen) {
+            is Screen.Edit -> Screen.Profiles
+            else -> Screen.Home
+        }
+    }
     when (val s = screen) {
         Screen.Home -> HomeScreen(vm, onStartVpn, onStopVpn,
             onManageProfiles = { screen = Screen.Profiles },
@@ -406,18 +420,27 @@ private fun AppPickerScreen(vm: MainViewModel, onBack: () -> Unit) {
     var query by remember { mutableStateOf("") }
     var tab by remember { mutableIntStateOf(0) } // 0 = third-party, 1 = system
     androidx.compose.runtime.LaunchedEffect(Unit) { vm.loadInstalledApps() }
+    // Persist selection then leave — shared by the top-bar button and the back gesture.
+    val commitAndBack = { vm.setSelectedPackages(selected); onBack() }
+    BackHandler { commitAndBack() }
 
     val q = query.trim().lowercase()
     fun matches(a: InstalledApp) =
         q.isEmpty() || a.label.lowercase().contains(q) || a.packageName.lowercase().contains(q)
     val thirdParty = apps.filter { !it.isSystem }
     val system = apps.filter { it.isSystem }
-    val shown = (if (tab == 0) thirdParty else system).filter(::matches)
+    // Selected apps float to the top; ordering is anchored to the persisted set so
+    // rows don't jump around while you tap. It re-sorts next time the screen opens.
+    val shown = (if (tab == 0) thirdParty else system)
+        .filter(::matches)
+        .sortedWith(
+            compareBy({ it.packageName !in settings.selectedPackages }, { it.label.lowercase() })
+        )
 
     Scaffold(topBar = {
         TopAppBar(title = { Text("Select apps (${selected.size})") },
             navigationIcon = {
-                IconButton(onClick = { vm.setSelectedPackages(selected); onBack() }) {
+                IconButton(onClick = { commitAndBack() }) {
                     Icon(Icons.Default.ArrowBack, null)
                 }
             })
@@ -449,16 +472,36 @@ private fun AppPickerScreen(vm: MainViewModel, onBack: () -> Unit) {
                     items(shown, key = { it.packageName }) { app ->
                         val checked = app.packageName in selected
                         Row(
-                            Modifier.fillMaxWidth().clickable {
-                                selected = if (checked) selected - app.packageName else selected + app.packageName
-                            }.padding(horizontal = 12.dp, vertical = 6.dp),
+                            Modifier.fillMaxWidth()
+                                .background(
+                                    if (checked) MaterialTheme.colorScheme.primaryContainer
+                                    else Color.Transparent
+                                )
+                                .clickable {
+                                    selected = if (checked) selected - app.packageName else selected + app.packageName
+                                }.padding(horizontal = 12.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Checkbox(checked = checked, onCheckedChange = null)
                             AppIcon(vm, app.packageName)
                             Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                                Text(app.label, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+                                Text(
+                                    app.label,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (checked) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (checked) MaterialTheme.colorScheme.onPrimaryContainer
+                                            else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                )
                                 Text(app.packageName, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                            }
+                            if (checked) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp),
+                                )
                             }
                         }
                         Divider()

@@ -22,3 +22,6 @@ Thumbs.db
 
 # Keep the prebuilt mihomo core (required to build the APK)
 !/app/src/main/jniLibs/**
+
+# Build outputs / release artifacts
+*.apk
