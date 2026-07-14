@@ -14,8 +14,8 @@ android {
         applicationId = "com.flowtrans"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
         // Only arm64-v8a jniLibs are shipped (the prebuilt mihomo core), so the APK
         // naturally contains just that ABI — no NDK/abiFilters needed.
     }
