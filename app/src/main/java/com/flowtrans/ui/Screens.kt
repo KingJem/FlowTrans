@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -61,7 +63,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.flowtrans.R
 import com.flowtrans.data.DnsMode
 import com.flowtrans.data.Protocol
 import com.flowtrans.data.ProxyProfile
@@ -127,7 +131,7 @@ private fun HomeScreen(
     val profiles by vm.profiles.collectAsState()
     val active = profiles.firstOrNull { it.id == settings.activeProfileId }
 
-    Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("FlowTrans") }) }) { inner ->
+    Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text(stringResource(R.string.app_name)) }) }) { inner ->
         Column(
             Modifier.padding(inner).padding(16.dp).fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -135,13 +139,15 @@ private fun HomeScreen(
             // Status card
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Status: ${state.status}", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.status_label, statusText(state.status)),
+                        style = MaterialTheme.typography.titleMedium)
                     state.message?.let {
                         Text(it, style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error)
                     }
                     if (state.status == VpnStatus.RUNNING) {
-                        Text("↑ ${state.trafficRaw.trafficUpload()}   ↓ ${state.trafficRaw.trafficDownload()}")
+                        Text(stringResource(R.string.traffic_label,
+                            state.trafficRaw.trafficUpload(), state.trafficRaw.trafficDownload()))
                     }
                 }
             }
@@ -149,13 +155,13 @@ private fun HomeScreen(
             // Active profile
             Card(Modifier.fillMaxWidth().clickable { onManageProfiles() }) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Upstream profile", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.upstream_profile_label), style = MaterialTheme.typography.labelMedium)
                     if (active != null) {
                         Text(active.name, style = MaterialTheme.typography.titleMedium)
                         Text("${active.protocol.label} · ${active.displayEndpoint}",
                             style = MaterialTheme.typography.bodySmall)
                     } else {
-                        Text("No profile — tap to add one",
+                        Text(stringResource(R.string.no_profile_tap_to_add),
                             style = MaterialTheme.typography.bodyMedium)
                     }
                 }
@@ -164,20 +170,20 @@ private fun HomeScreen(
             // Routing mode
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Routing", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.routing_label), style = MaterialTheme.typography.labelMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = settings.routingMode == RoutingMode.GLOBAL,
                             onClick = { vm.setRoutingMode(RoutingMode.GLOBAL) },
-                            label = { Text("Global") })
+                            label = { Text(stringResource(R.string.routing_global)) })
                         FilterChip(
                             selected = settings.routingMode == RoutingMode.PER_APP,
                             onClick = { vm.setRoutingMode(RoutingMode.PER_APP) },
-                            label = { Text("Per-app") })
+                            label = { Text(stringResource(R.string.routing_per_app)) })
                     }
                     if (settings.routingMode == RoutingMode.PER_APP) {
                         FilledTonalButton(onClick = onPickApps) {
-                            Text("Select apps (${settings.selectedPackages.size})")
+                            Text(stringResource(R.string.select_apps_button, settings.selectedPackages.size))
                         }
                     }
                 }
@@ -187,8 +193,8 @@ private fun HomeScreen(
 
             Card(Modifier.fillMaxWidth().clickable { onOpenCert() }) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("HTTPS decryption (CA)", style = MaterialTheme.typography.labelMedium)
-                    Text("Trust mitmproxy's CA so HTTPS can be decrypted",
+                    Text(stringResource(R.string.https_decryption_title), style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.https_decryption_subtitle),
                         style = MaterialTheme.typography.bodyMedium)
                 }
             }
@@ -200,29 +206,64 @@ private fun HomeScreen(
                 onClick = { if (running) onStopVpn() else onStartVpn() },
                 enabled = active != null || running,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(if (running) "Stop" else "Start forwarding") }
+            ) { Text(stringResource(if (running) R.string.stop else R.string.start_forwarding)) }
         }
     }
 }
 
 @Composable
+private fun statusText(status: VpnStatus): String = when (status) {
+    VpnStatus.STOPPED -> stringResource(R.string.status_stopped)
+    VpnStatus.STARTING -> stringResource(R.string.status_starting)
+    VpnStatus.RUNNING -> stringResource(R.string.status_running)
+    VpnStatus.STOPPING -> stringResource(R.string.status_stopping)
+    VpnStatus.ERROR -> stringResource(R.string.status_error)
+}
+
+@Composable
 private fun AdvancedCard(vm: MainViewModel) {
     val settings by vm.uiSettings.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Advanced", style = MaterialTheme.typography.labelMedium)
-            Text("DNS mode", style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DnsMode.entries.forEach { m ->
-                    FilterChip(selected = settings.dnsMode == m,
-                        onClick = { vm.setDnsMode(m) }, label = { Text(m.yaml) })
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(stringResource(R.string.advanced_title), style = MaterialTheme.typography.labelMedium)
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = stringResource(if (expanded) R.string.advanced_collapse_cd else R.string.advanced_expand_cd),
+                )
             }
-            Text("TUN stack", style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TunStack.entries.forEach { st ->
-                    FilterChip(selected = settings.tunStack == st,
-                        onClick = { vm.setTunStack(st) }, label = { Text(st.value) })
+            if (expanded) {
+                Text(stringResource(R.string.dns_mode_label), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.dns_mode_desc), style = MaterialTheme.typography.bodySmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DnsMode.entries.forEach { m ->
+                        FilterChip(selected = settings.dnsMode == m,
+                            onClick = { vm.setDnsMode(m) }, label = { Text(m.yaml) })
+                    }
+                }
+                Text(stringResource(R.string.tun_stack_label), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.tun_stack_desc), style = MaterialTheme.typography.bodySmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TunStack.entries.forEach { st ->
+                        FilterChip(selected = settings.tunStack == st,
+                            onClick = { vm.setTunStack(st) }, label = { Text(st.value) })
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.block_quic_label), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.block_quic_desc), style = MaterialTheme.typography.bodySmall)
+                    }
+                    Switch(checked = settings.blockQuic, onCheckedChange = { vm.setBlockQuic(it) })
                 }
             }
         }
@@ -241,7 +282,7 @@ private fun ProfilesScreen(
     val settings by vm.uiSettings.collectAsState()
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Profiles & history") },
+            TopAppBar(title = { Text(stringResource(R.string.profiles_title)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null) } })
         },
         floatingActionButton = { FloatingActionButton(onClick = onAdd) { Icon(Icons.Default.Add, null) } },
@@ -282,43 +323,43 @@ private fun EditScreen(vm: MainViewModel, existing: ProxyProfile?, onDone: () ->
     var skipVerify by remember { mutableStateOf(existing?.skipCertVerify ?: true) }
 
     Scaffold(topBar = {
-        TopAppBar(title = { Text(if (existing == null) "New profile" else "Edit profile") },
+        TopAppBar(title = { Text(stringResource(if (existing == null) R.string.new_profile_title else R.string.edit_profile_title)) },
             navigationIcon = { IconButton(onClick = onDone) { Icon(Icons.Default.ArrowBack, null) } })
     }) { inner ->
         Column(
             Modifier.padding(inner).padding(16.dp).fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(name, { name = it }, label = { Text("Name") },
+            OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.field_name)) },
                 modifier = Modifier.fillMaxWidth())
-            Text("Protocol", style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.field_protocol), style = MaterialTheme.typography.labelMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Protocol.entries.forEach { pr ->
                     FilterChip(selected = protocol == pr, onClick = { protocol = pr },
                         label = { Text(pr.name) })
                 }
             }
-            OutlinedTextField(host, { host = it }, label = { Text("Host (mitmproxy PC IP)") },
+            OutlinedTextField(host, { host = it }, label = { Text(stringResource(R.string.field_host)) },
                 modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(port, { port = it.filter(Char::isDigit) }, label = { Text("Port") },
+            OutlinedTextField(port, { port = it.filter(Char::isDigit) }, label = { Text(stringResource(R.string.field_port)) },
                 modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(username, { username = it }, label = { Text("Username (optional)") },
+            OutlinedTextField(username, { username = it }, label = { Text(stringResource(R.string.field_username)) },
                 modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(password, { password = it }, label = { Text("Password (optional)") },
+            OutlinedTextField(password, { password = it }, label = { Text(stringResource(R.string.field_password)) },
                 visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
 
             if (protocol != Protocol.HTTPS) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Switch(checked = tls, onCheckedChange = { tls = it }); Spacer(Modifier.width(8.dp))
-                    Text("TLS to upstream")
+                    Text(stringResource(R.string.tls_to_upstream))
                 }
             }
             if (protocol == Protocol.HTTPS || tls) {
-                OutlinedTextField(sni, { sni = it }, label = { Text("SNI (optional)") },
+                OutlinedTextField(sni, { sni = it }, label = { Text(stringResource(R.string.field_sni)) },
                     modifier = Modifier.fillMaxWidth())
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Switch(checked = skipVerify, onCheckedChange = { skipVerify = it })
-                    Spacer(Modifier.width(8.dp)); Text("Skip cert verify")
+                    Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.skip_cert_verify))
                 }
             }
 
@@ -341,7 +382,7 @@ private fun EditScreen(vm: MainViewModel, existing: ProxyProfile?, onDone: () ->
                 },
                 enabled = host.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.save)) }
         }
     }
 }
@@ -354,7 +395,7 @@ private fun CertificateScreen(vm: MainViewModel, onImportCa: () -> Unit, onBack:
     androidx.compose.runtime.LaunchedEffect(Unit) { vm.refreshCaStatus() }
 
     Scaffold(topBar = {
-        TopAppBar(title = { Text("HTTPS decryption") },
+        TopAppBar(title = { Text(stringResource(R.string.https_decryption_screen_title)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null) } })
     }) { inner ->
         Column(
@@ -365,36 +406,33 @@ private fun CertificateScreen(vm: MainViewModel, onImportCa: () -> Unit, onBack:
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     val s = status
                     if (s == null) {
-                        Text("Checking…")
+                        Text(stringResource(R.string.checking))
                     } else {
-                        StatusLine("Root (su) available", s.rootAvailable)
-                        StatusLine("MoveCertificate module", s.moveCertModule)
-                        StatusLine("mitmproxy CA trusted system-wide", s.mitmTrustedSystemWide)
+                        StatusLine(stringResource(R.string.status_root_available), s.rootAvailable)
+                        StatusLine(stringResource(R.string.status_movecert_module), s.moveCertModule)
+                        StatusLine(stringResource(R.string.status_mitm_trusted), s.mitmTrustedSystemWide)
                     }
                 }
             }
 
-            Text(
-                "To decrypt HTTPS, mitmproxy's CA must be trusted by the system store. " +
-                    "Import the CA (from ~/.mitmproxy/mitmproxy-ca-cert.cer on your PC), then — on a " +
-                    "rooted device with a MoveCertificate-style module — it is promoted to the system " +
-                    "store automatically (reboot to apply). Without root, only this app could trust it.",
-                style = MaterialTheme.typography.bodySmall,
-            )
+            Text(stringResource(R.string.ca_explanation), style = MaterialTheme.typography.bodySmall)
 
             Button(onClick = onImportCa, modifier = Modifier.fillMaxWidth()) {
-                Text("Import CA certificate…")
+                Text(stringResource(R.string.import_ca_button))
             }
+            val movecertNote = stringResource(R.string.movecert_note)
+            val movecertDone = stringResource(R.string.movecert_done)
+            val rebootingNote = stringResource(R.string.rebooting_note)
             FilledTonalButton(
-                onClick = { vm.refreshMoveCertificate { note = "MoveCertificate: ${it.ifBlank { "done" }}" } },
+                onClick = { vm.refreshMoveCertificate { note = movecertNote.format(it.ifBlank { movecertDone }) } },
                 enabled = status?.rootAvailable == true,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Re-run MoveCertificate (no reboot)") }
+            ) { Text(stringResource(R.string.rerun_movecert_button)) }
             FilledTonalButton(
-                onClick = { vm.reboot(); note = "Rebooting…" },
+                onClick = { vm.reboot(); note = rebootingNote },
                 enabled = status?.rootAvailable == true,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Reboot to apply") }
+            ) { Text(stringResource(R.string.reboot_button)) }
 
             note?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         }
@@ -438,7 +476,7 @@ private fun AppPickerScreen(vm: MainViewModel, onBack: () -> Unit) {
         )
 
     Scaffold(topBar = {
-        TopAppBar(title = { Text("Select apps (${selected.size})") },
+        TopAppBar(title = { Text(stringResource(R.string.select_apps_button, selected.size)) },
             navigationIcon = {
                 IconButton(onClick = { commitAndBack() }) {
                     Icon(Icons.Default.ArrowBack, null)
@@ -449,7 +487,7 @@ private fun AppPickerScreen(vm: MainViewModel, onBack: () -> Unit) {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                label = { Text("Search apps") },
+                label = { Text(stringResource(R.string.search_apps_hint)) },
                 leadingIcon = { Icon(Icons.Default.Search, null) },
                 trailingIcon = {
                     if (query.isNotEmpty()) {
@@ -461,12 +499,12 @@ private fun AppPickerScreen(vm: MainViewModel, onBack: () -> Unit) {
             )
             TabRow(selectedTabIndex = tab) {
                 Tab(selected = tab == 0, onClick = { tab = 0 },
-                    text = { Text("Third-party (${thirdParty.size})") })
+                    text = { Text(stringResource(R.string.tab_third_party, thirdParty.size)) })
                 Tab(selected = tab == 1, onClick = { tab = 1 },
-                    text = { Text("System (${system.size})") })
+                    text = { Text(stringResource(R.string.tab_system, system.size)) })
             }
             if (apps.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Loading apps…") }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(R.string.loading_apps)) }
             } else {
                 LazyColumn(Modifier.fillMaxSize()) {
                     items(shown, key = { it.packageName }) { app ->
@@ -498,7 +536,7 @@ private fun AppPickerScreen(vm: MainViewModel, onBack: () -> Unit) {
                             if (checked) {
                                 Icon(
                                     Icons.Default.CheckCircle,
-                                    contentDescription = "Selected",
+                                    contentDescription = stringResource(R.string.selected_cd),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp),
                                 )

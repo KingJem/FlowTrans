@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 val cert = CaInstaller.parseCert(bytes)
                 startActivity(CaInstaller.installIntent(cert))
             }.onFailure {
-                Toast.makeText(this, "Import failed: ${it.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.import_failed_toast, it.message), Toast.LENGTH_LONG).show()
             }
         }
 

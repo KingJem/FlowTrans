@@ -1,0 +1,84 @@
+<resources>
+    <string name="app_name">FlowTrans</string>
+
+    <!-- Home screen -->
+    <string name="status_label">状态:%1$s</string>
+    <string name="status_stopped">已停止</string>
+    <string name="status_starting">启动中</string>
+    <string name="status_running">运行中</string>
+    <string name="status_stopping">停止中</string>
+    <string name="status_error">错误</string>
+    <string name="traffic_label">↑ %1$s   ↓ %2$s</string>
+    <string name="upstream_profile_label">上游配置</string>
+    <string name="no_profile_tap_to_add">暂无配置——点击添加</string>
+    <string name="routing_label">路由</string>
+    <string name="routing_global">全局</string>
+    <string name="routing_per_app">按应用</string>
+    <string name="select_apps_button">选择应用 (%1$d)</string>
+    <string name="https_decryption_title">HTTPS 解密(证书)</string>
+    <string name="https_decryption_subtitle">信任 mitmproxy 的证书以解密 HTTPS</string>
+    <string name="start_forwarding">开始转发</string>
+    <string name="stop">停止</string>
+
+    <!-- Advanced card -->
+    <string name="advanced_title">高级选项</string>
+    <string name="advanced_expand_cd">展开</string>
+    <string name="advanced_collapse_cd">收起</string>
+    <string name="dns_mode_label">DNS 模式</string>
+    <string name="dns_mode_desc">redir-host 保留真实域名,便于 mitmproxy 识别;fake-ip 速度更快,但会隐藏 SNI/Host,除非由 sniffer 还原。</string>
+    <string name="tun_stack_label">TUN 协议栈</string>
+    <string name="tun_stack_desc">TUN 设备的数据包处理引擎:gvisor 为用户态实现,兼容性最好;system 使用内核网络栈;mixed 为两者混合。</string>
+    <string name="block_quic_label">屏蔽 QUIC</string>
+    <string name="block_quic_desc">拒绝 UDP/443、8443 端口,使 HTTP/3 回退到 TCP TLS(mitmproxy 抓包需要)</string>
+
+    <!-- Profiles screen -->
+    <string name="profiles_title">配置与历史记录</string>
+
+    <!-- Edit screen -->
+    <string name="new_profile_title">新建配置</string>
+    <string name="edit_profile_title">编辑配置</string>
+    <string name="field_name">名称</string>
+    <string name="field_protocol">协议</string>
+    <string name="field_host">主机地址(mitmproxy 所在电脑 IP)</string>
+    <string name="field_port">端口</string>
+    <string name="field_username">用户名(可选)</string>
+    <string name="field_password">密码(可选)</string>
+    <string name="tls_to_upstream">上游使用 TLS</string>
+    <string name="field_sni">SNI(可选)</string>
+    <string name="skip_cert_verify">跳过证书验证</string>
+    <string name="save">保存</string>
+
+    <!-- Certificate screen -->
+    <string name="https_decryption_screen_title">HTTPS 解密</string>
+    <string name="checking">检查中…</string>
+    <string name="status_root_available">Root(su)可用</string>
+    <string name="status_movecert_module">MoveCertificate 模块</string>
+    <string name="status_mitm_trusted">mitmproxy 证书已被系统全局信任</string>
+    <string name="ca_explanation">要解密 HTTPS,mitmproxy 的证书必须被系统信任库信任。导入证书(来自你电脑上的 ~/.mitmproxy/mitmproxy-ca-cert.cer),在装有 MoveCertificate 类模块的已 root 设备上,会自动提升为系统级信任(需要重启生效)。未 root 的设备只有本 App 能信任它。</string>
+    <string name="import_ca_button">导入 CA 证书…</string>
+    <string name="rerun_movecert_button">重新运行 MoveCertificate(无需重启)</string>
+    <string name="reboot_button">重启以生效</string>
+    <string name="movecert_note">MoveCertificate:%1$s</string>
+    <string name="movecert_done">完成</string>
+    <string name="rebooting_note">正在重启…</string>
+
+    <!-- App picker screen -->
+    <string name="search_apps_hint">搜索应用</string>
+    <string name="tab_third_party">第三方 (%1$d)</string>
+    <string name="tab_system">系统 (%1$d)</string>
+    <string name="loading_apps">正在加载应用…</string>
+    <string name="selected_cd">已选择</string>
+
+    <!-- MainActivity -->
+    <string name="import_failed_toast">导入失败:%1$s</string>
+
+    <!-- VPN notification -->
+    <string name="notif_channel_name">FlowTrans VPN</string>
+    <string name="notif_starting">启动中…</string>
+    <string name="notif_forwarding_via">正在通过 %1$s 转发</string>
+    <string name="error_no_active_profile">未选择有效配置</string>
+    <string name="error_no_apps_selected">已开启按应用模式,但未选择任何应用</string>
+    <string name="error_vpn_permission">VPN 权限未授予 / 隧道建立失败</string>
+    <string name="stopped_by_user">用户已停止</string>
+    <string name="vpn_revoked">VPN 权限被系统撤销</string>
+</resources>

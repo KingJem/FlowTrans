@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import com.flowtrans.MainActivity
+import com.flowtrans.R
 import com.flowtrans.core.ConfigBuilder
 import com.flowtrans.data.AppDatabase
 import com.flowtrans.data.SettingsStore
@@ -38,7 +39,7 @@ class FlowVpnService : VpnService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
-                stopTunnel("Stopped by user")
+                stopTunnel(getString(R.string.stopped_by_user))
                 return START_NOT_STICKY
             }
             else -> startTunnel()
@@ -48,7 +49,7 @@ class FlowVpnService : VpnService() {
 
     private fun startTunnel() {
         if (VpnController.state.value.status == VpnStatus.RUNNING) return
-        startForegroundInternal("Starting…")
+        startForegroundInternal(getString(R.string.notif_starting))
         VpnController.update { it.copy(status = VpnStatus.STARTING, message = null) }
 
         scope.launch {
@@ -56,13 +57,14 @@ class FlowVpnService : VpnService() {
                 val settings = SettingsStore(this@FlowVpnService)
                 val dao = AppDatabase.get(this@FlowVpnService).profileDao()
                 val profile = dao.getById(settings.activeProfileId)
-                    ?: error("No active profile selected")
+                    ?: error(getString(R.string.error_no_active_profile))
 
                 // 1) Generate + write config into the core home dir (filesDir/clash).
                 val yaml = ConfigBuilder.build(
                     profile = profile,
                     routingMode = settings.routingMode,
                     dnsMode = settings.dnsMode,
+                    blockQuic = settings.blockQuic,
                 )
                 val home = File(filesDir, "clash").apply { mkdirs() }
                 File(home, "config.yaml").writeText(yaml)
@@ -83,7 +85,7 @@ class FlowVpnService : VpnService() {
                 VpnController.update {
                     it.copy(status = VpnStatus.RUNNING, message = null, activeProfileName = profile.name)
                 }
-                updateNotification("Forwarding via ${profile.name}")
+                updateNotification(getString(R.string.notif_forwarding_via, profile.name))
                 startTrafficPolling()
             } catch (t: Throwable) {
                 android.util.Log.e("FlowTrans", "startTunnel failed", t)
@@ -111,7 +113,7 @@ class FlowVpnService : VpnService() {
                 }
                 com.flowtrans.data.RoutingMode.PER_APP -> {
                     val pkgs = settings.selectedPackages - packageName
-                    if (pkgs.isEmpty()) error("Per-app mode is on but no apps are selected")
+                    if (pkgs.isEmpty()) error(getString(R.string.error_no_apps_selected))
                     pkgs.forEach { runCatching { addAllowedApplication(it) } }
                 }
             }
@@ -129,7 +131,7 @@ class FlowVpnService : VpnService() {
         val pfd = builder.establish()
         android.util.Log.i("FlowTrans", "establish() returned: $pfd")
         fd = pfd?.detachFd()
-            ?: error("VPN permission not granted / establish() rejected")
+            ?: error(getString(R.string.error_vpn_permission))
         android.util.Log.i("FlowTrans", "TUN fd=$fd, calling startTun")
 
         Clash.startTun(
@@ -175,7 +177,7 @@ class FlowVpnService : VpnService() {
         val nm = getSystemService<NotificationManager>()!!
         if (Build.VERSION.SDK_INT >= 26) {
             nm.createNotificationChannel(
-                NotificationChannel(CHANNEL, "FlowTrans VPN", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(CHANNEL, getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_LOW)
             )
         }
         val notification = buildNotification(text)
@@ -192,9 +194,9 @@ class FlowVpnService : VpnService() {
 
     private fun buildNotification(text: String): Notification =
         NotificationCompat.Builder(this, CHANNEL)
-            .setContentTitle("FlowTrans")
+            .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
-            .setSmallIcon(android.R.drawable.stat_sys_warning)
+            .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .setContentIntent(
                 PendingIntent.getActivity(
@@ -212,7 +214,7 @@ class FlowVpnService : VpnService() {
     }
 
     override fun onRevoke() {
-        stopTunnel("VPN revoked by system")
+        stopTunnel(getString(R.string.vpn_revoked))
         super.onRevoke()
     }
 

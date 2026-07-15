@@ -30,6 +30,7 @@ data class UiSettings(
     val selectedPackages: Set<String> = emptySet(),
     val dnsMode: DnsMode = DnsMode.REDIR_HOST,
     val tunStack: TunStack = TunStack.GVISOR,
+    val blockQuic: Boolean = true,
 )
 
 data class InstalledApp(
@@ -79,6 +80,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         selectedPackages = settings.selectedPackages,
         dnsMode = settings.dnsMode,
         tunStack = settings.tunStack,
+        blockQuic = settings.blockQuic,
     )
 
     fun saveProfile(profile: ProxyProfile) {
@@ -119,6 +121,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun setTunStack(stack: TunStack) {
         settings.tunStack = stack
         _uiSettings.value = _uiSettings.value.copy(tunStack = stack)
+    }
+
+    fun setBlockQuic(enabled: Boolean) {
+        settings.blockQuic = enabled
+        _uiSettings.value = _uiSettings.value.copy(blockQuic = enabled)
     }
 
     fun loadInstalledApps() {

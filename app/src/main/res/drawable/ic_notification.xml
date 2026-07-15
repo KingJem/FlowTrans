@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Double chevron ">>" matching the launcher icon; must stay a plain white silhouette
+         on a transparent background, as the status bar re-tints it itself. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4,6 L14,12 L4,18 Z M13,6 L23,12 L13,18 Z" />
+</vector>

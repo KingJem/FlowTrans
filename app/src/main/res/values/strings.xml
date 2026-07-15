@@ -1,3 +1,84 @@
 <resources>
     <string name="app_name">FlowTrans</string>
+
+    <!-- Home screen -->
+    <string name="status_label">Status: %1$s</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="status_starting">Starting</string>
+    <string name="status_running">Running</string>
+    <string name="status_stopping">Stopping</string>
+    <string name="status_error">Error</string>
+    <string name="traffic_label">↑ %1$s   ↓ %2$s</string>
+    <string name="upstream_profile_label">Upstream profile</string>
+    <string name="no_profile_tap_to_add">No profile — tap to add one</string>
+    <string name="routing_label">Routing</string>
+    <string name="routing_global">Global</string>
+    <string name="routing_per_app">Per-app</string>
+    <string name="select_apps_button">Select apps (%1$d)</string>
+    <string name="https_decryption_title">HTTPS decryption (CA)</string>
+    <string name="https_decryption_subtitle">Trust mitmproxy\'s CA so HTTPS can be decrypted</string>
+    <string name="start_forwarding">Start forwarding</string>
+    <string name="stop">Stop</string>
+
+    <!-- Advanced card -->
+    <string name="advanced_title">Advanced</string>
+    <string name="advanced_expand_cd">Expand</string>
+    <string name="advanced_collapse_cd">Collapse</string>
+    <string name="dns_mode_label">DNS mode</string>
+    <string name="dns_mode_desc">redir-host keeps real hostnames so mitmproxy sees them; fake-ip is faster but hides SNI/Host unless the sniffer recovers it.</string>
+    <string name="tun_stack_label">TUN stack</string>
+    <string name="tun_stack_desc">Packet engine for the TUN device: gvisor is userspace and most compatible, system uses the kernel netstack, mixed is a hybrid of the two.</string>
+    <string name="block_quic_label">Block QUIC</string>
+    <string name="block_quic_desc">Reject UDP/443,8443 so HTTP/3 falls back to TCP TLS (needed for mitmproxy capture)</string>
+
+    <!-- Profiles screen -->
+    <string name="profiles_title">Profiles &amp; history</string>
+
+    <!-- Edit screen -->
+    <string name="new_profile_title">New profile</string>
+    <string name="edit_profile_title">Edit profile</string>
+    <string name="field_name">Name</string>
+    <string name="field_protocol">Protocol</string>
+    <string name="field_host">Host (mitmproxy PC IP)</string>
+    <string name="field_port">Port</string>
+    <string name="field_username">Username (optional)</string>
+    <string name="field_password">Password (optional)</string>
+    <string name="tls_to_upstream">TLS to upstream</string>
+    <string name="field_sni">SNI (optional)</string>
+    <string name="skip_cert_verify">Skip cert verify</string>
+    <string name="save">Save</string>
+
+    <!-- Certificate screen -->
+    <string name="https_decryption_screen_title">HTTPS decryption</string>
+    <string name="checking">Checking…</string>
+    <string name="status_root_available">Root (su) available</string>
+    <string name="status_movecert_module">MoveCertificate module</string>
+    <string name="status_mitm_trusted">mitmproxy CA trusted system-wide</string>
+    <string name="ca_explanation">To decrypt HTTPS, mitmproxy\'s CA must be trusted by the system store. Import the CA (from ~/.mitmproxy/mitmproxy-ca-cert.cer on your PC), then — on a rooted device with a MoveCertificate-style module — it is promoted to the system store automatically (reboot to apply). Without root, only this app could trust it.</string>
+    <string name="import_ca_button">Import CA certificate…</string>
+    <string name="rerun_movecert_button">Re-run MoveCertificate (no reboot)</string>
+    <string name="reboot_button">Reboot to apply</string>
+    <string name="movecert_note">MoveCertificate: %1$s</string>
+    <string name="movecert_done">done</string>
+    <string name="rebooting_note">Rebooting…</string>
+
+    <!-- App picker screen -->
+    <string name="search_apps_hint">Search apps</string>
+    <string name="tab_third_party">Third-party (%1$d)</string>
+    <string name="tab_system">System (%1$d)</string>
+    <string name="loading_apps">Loading apps…</string>
+    <string name="selected_cd">Selected</string>
+
+    <!-- MainActivity -->
+    <string name="import_failed_toast">Import failed: %1$s</string>
+
+    <!-- VPN notification -->
+    <string name="notif_channel_name">FlowTrans VPN</string>
+    <string name="notif_starting">Starting…</string>
+    <string name="notif_forwarding_via">Forwarding via %1$s</string>
+    <string name="error_no_active_profile">No active profile selected</string>
+    <string name="error_no_apps_selected">Per-app mode is on but no apps are selected</string>
+    <string name="error_vpn_permission">VPN permission not granted / establish() rejected</string>
+    <string name="stopped_by_user">Stopped by user</string>
+    <string name="vpn_revoked">VPN revoked by system</string>
 </resources>
