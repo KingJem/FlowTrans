@@ -82,15 +82,15 @@ when you push a `v*` tag.
 ## Architecture
 
 ```
-FlowTrans app (Android)                                    PC
-┌───────────────────────────────────────────┐       ┌──────────────┐
-│ Compose UI ─ profiles / routing / CA        │       │              │
-│      │ generates config.yaml                │       │  mitmproxy   │
-│      ▼                                       │       │  :8080       │
-│ mihomo core (libclash.so + libbridge.so) ───┼──LAN─▶│  decrypts    │
-│      ▲   outbound: http / socks5            │       │  (system CA  │
-│ VpnService TUN ◀─ fd → Bridge.startTun()    │       │   via root)  │
-└───────────────────────────────────────────┘       └──────────────┘
+FlowTrans app (Android)                               PC
+┌────────────────────────────────────────────┐        ┌──────────────────────┐
+│ Compose UI - profiles / routing / CA       │        │                      │
+│   |  generates config.yaml                 │        │ mitmproxy :8080      │
+│   v                                        │        │                      │
+│ mihomo core (libclash.so + libbridge.so)   │--LAN-->│ decrypts HTTPS       │
+│   ^  outbound: http / socks5               │        │ (system CA via root) │
+│ VpnService TUN -- fd --> Bridge.startTun() │        │                      │
+└────────────────────────────────────────────┘        └──────────────────────┘
 ```
 
 - `com.flowtrans.vpn.FlowVpnService` — establishes the TUN and hands its fd to the core.
