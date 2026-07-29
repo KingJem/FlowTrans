@@ -62,6 +62,61 @@ immutable Conscrypt APEX. So decrypting **other apps'** HTTPS needs **root**:
   store (reboot to apply), and mitmproxy can then decrypt any non-pinned app.
 - **Non-rooted:** only apps that opt into the user CA store can be decrypted.
 
+### Command-line control (adb)
+
+Prefer scripting over tapping? The GUI steps above have a headless equivalent over `adb`
+(needs **root** for the prefs write and VPN start). This sets **per-app** capture for one package
+and starts forwarding — no taps:
+
+```bash
+# 1) Stop the app first — its SharedPreferences are memory-cached and rewritten on exit,
+#    so an edit made while it runs gets clobbered.
+adb shell am force-stop com.flowtrans
+
+# 2) Write the routing profile to /sdcard (plain shell can write sdcard; no root needed).
+#    Add more <string>…</string> lines for multiple packages.
+adb shell "cat > /sdcard/_ft.xml <<'EOF'
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <long name=\"active_profile_id\" value=\"2\" />
+    <string name=\"tun_stack\">GVISOR</string>
+    <string name=\"dns_mode\">REDIR_HOST</string>
+    <set name=\"selected_packages\">
+        <string>com.example.app</string>
+    </set>
+    <string name=\"routing_mode\">PER_APP</string>
+</map>
+EOF"
+
+# 3) Copy over the prefs (root). `cp` overwrites in place, keeping the file's inode / owner /
+#    SELinux context — do NOT `cat >` the app dir directly (its O_CREAT is SELinux-denied,
+#    and chown/chmod/restorecon on app_data_file are denied to the su domain and unneeded).
+adb shell su -c "cp /sdcard/_ft.xml /data/data/com.flowtrans/shared_prefs/flowtrans_settings.xml; rm -f /sdcard/_ft.xml"
+
+# 4) Loopback tunnel (device 127.0.0.1:8080 -> PC mitmproxy)
+adb reverse tcp:8080 tcp:8080
+
+# 5) Start forwarding — the VpnService, as root. A plain shell uid gets
+#    "Requires permission not exported"; VPN consent is already granted, so no dialog.
+adb shell su -c "am start-foreground-service -n com.flowtrans/.vpn.FlowVpnService -a com.flowtrans.action.START"
+```
+
+- **Global routing:** drop the whole `<set>…</set>` block and set `routing_mode` to `GLOBAL`.
+- **Stop forwarding:** `adb shell am force-stop com.flowtrans` (tears down `tun0`); optionally `adb reverse --remove tcp:8080`.
+- **Verify:** `adb shell "ip addr show tun0"` — an `inet` line means forwarding is up.
+
+### Automated capture
+
+For a **one-command, end-to-end** capture chain that wraps all of the above — environment preflight,
+per-app/global targeting, mitmweb (direct or overseas-proxy exit), and Frida SSL-unpinning for
+pinned apps — use the companion **[android-capture-skill](https://github.com/KingJem/android-capture-skill)**
+(a Claude Code skill). It drives FlowTrans entirely through the `adb` calls shown above:
+
+```bash
+python scripts/capture.py preflight                                   # check PC + phone env
+python scripts/capture.py flowtrans --pkg com.example.app --mitmweb   # target + reverse + mitmweb + VPN
+```
+
 ## Build from source
 
 Requires **JDK 17** and the **Android SDK** (platform 34, build-tools 34.0.0). No Go/NDK needed —
